@@ -19,6 +19,15 @@ class ItemRepository extends BaseRepository {
             .populate("categories")
             .populate("relatedProducts");
     }
+
+    async count(filterQuery) {
+        try {
+            return await this.model.countDocuments(filterQuery);
+        } catch (error) {
+            console.error('Error counting documents:', error);
+            throw new Error('Failed to count items');
+        }
+    }
 }
 
 export default ItemRepository;
