@@ -3,12 +3,12 @@ import morgan from "morgan";
 import express from 'express';
 import * as fs from "node:fs";
 import swaggerUi from "swagger-ui-express";
-
+import cors from 'cors'
+import bodyParser from "body-parser";
 
 import connectToDB from "../infrastructure/database/mongoose.js";
 import config, {BaseDir} from "./config.js";
 import globalRouter from '../interface/global-routers.js'
-import bodyParser from "body-parser";
 
 const app = express();
 const swaggerJsonPath = path.resolve('swagger_output.json');
@@ -20,6 +20,7 @@ connectToDB();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(bodyParser());
+app.use(cors())
 
 
 app.use("/api", globalRouter)
