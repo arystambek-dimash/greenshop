@@ -10,8 +10,13 @@ class ItemRepository extends BaseRepository {
         return this.model.findOne({sku});
     }
 
-    async findWithCategoryAndTags(filters, options) {
-        return this.model.find(filters, options).populate("categories").select("-__v");
+    async findWithCategoryAndTags(filters, options, skip, limit) {
+        return this.model
+            .find(filters, options)
+            .populate("categories")
+            .select("-__v")
+            .skip(skip)
+            .limit(limit);
     }
 
     async findByIdWithRelatedProducts(id) {

@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 class ItemController {
     constructor(itemRepository, reviewRepository, userRepository) {
         this.itemRepository = itemRepository;
@@ -26,7 +28,11 @@ class ItemController {
             if (existingItem) {
                 return res.status(400).send({detail: "SKU already exists"});
             }
-
+            for (const category of categories) {
+                if (!mongoose.Types.ObjectId.isValid(category)) {
+                    return res.status(400).send({detail: "Invalid type. Must be ObjectId type"});
+                }
+            }
             const newItem = await this.itemRepository.create({
                 images,
                 title,
@@ -66,7 +72,7 @@ class ItemController {
             let sortOption = {};
             if (category) filterQuery.categories = category;
 
-            if (priceFilters.minPrice !== null && priceFilters.maxPrice !== null) {
+            if (priceFilters.minPrice !== undefined && priceFilters.maxPrice !== undefined) {
                 filterQuery.cost = {$gte: priceFilters.minPrice, $lte: priceFilters.maxPrice};
             } else if (priceFilters.minPrice !== undefined) {
                 filterQuery.cost = {$gte: priceFilters.minPrice};
@@ -93,10 +99,20 @@ class ItemController {
             const offset = (page - 1) * limit;
 
             const totalCount = await this.itemRepository.count(filterQuery);
+
             const totalPages = Math.ceil(totalCount / limit);
-
+            if (offset >= totalCount) {
+                return res.status(200).json({
+                    metadata: {
+                        totalItems: totalCount,
+                        totalPages: totalPages,
+                        currentPage: parseInt(page, 10),
+                        itemsPerPage: parseInt(limit, 10),
+                    },
+                    data: [],
+                });
+            }
             const items = await this.itemRepository.findWithCategoryAndTags(filterQuery, sortOption, offset, limit);
-
             const formattedItems = await Promise.all(items.map(async (item) => {
                 const reviews = await this.reviewRepository.findByItemId(item._id);
                 const reviewsCount = reviews.length;
